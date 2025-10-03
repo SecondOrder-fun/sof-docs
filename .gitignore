@@ -1,0 +1,17 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# GitBook build
+_book/
+.gitbook/
+
+# Node modules (if using GitBook CLI)
+node_modules/
