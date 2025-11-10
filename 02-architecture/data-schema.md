@@ -47,20 +47,23 @@ type PlayerPosition = {
 ```typescript
 type InfoFiMarket = {
   id: string | number;              // DB identifier
-  seasonId: number;                 // Associated raffle/season
+  raffleId: number;                 // Associated raffle/season (DB column: raffle_id)
   playerAddress?: string;           // For player-focused markets
+  playerId?: number;                // Optional normalized player reference
   marketType: 'WINNER_PREDICTION' | 'POSITION_SIZE' | 'BEHAVIORAL';
   contractAddress?: string;         // Onchain market address if deployed
-  initialProbabilityBps: number;    // Snapshot at creation
-  currentProbabilityBps: number;    // Updated via position changes
-  isActive: boolean;
-  isSettled: boolean;
-  settlementTime?: string;          // ISO timestamp
-  winningOutcome?: boolean;         // Depends on market type
-  createdAt: string;                // ISO timestamp
-  updatedAt: string;                // ISO timestamp
+  initialProbabilityBps: number;    // Snapshot at creation (DB column: initial_probability_bps)
+  currentProbabilityBps: number;    // Updated via position changes (DB column: current_probability_bps)
+  isActive: boolean;                // DB column: is_active
+  isSettled: boolean;               // DB column: is_settled
+  settlementTime?: string;          // ISO timestamp (DB column: settlement_time)
+  winningOutcome?: boolean;         // Depends on market type (DB column: winning_outcome)
+  createdAt: string;                // ISO timestamp (DB column: created_at)
+  updatedAt: string;                // ISO timestamp (DB column: updated_at)
 }
 ```
+
+**Note**: The database uses `raffle_id` (snake_case), not `season_id`. Frontend/API may use camelCase (`raffleId`).
 
 ### InfoFi Position (User Bet)
 
