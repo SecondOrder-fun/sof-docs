@@ -213,6 +213,23 @@ No new environment variables required. The system uses existing variables but no
 3. Clear frontend cache (hard refresh)
 4. Verify network configuration in logs
 
+## Environment Variable Validation
+
+The backend now validates **only the network being used**, not all networks:
+
+```javascript
+// If DEFAULT_NETWORK=TESTNET, only validates:
+// - RPC_URL_TESTNET
+
+// If DEFAULT_NETWORK=LOCAL, only validates:
+// - RPC_URL_LOCAL
+
+// If DEFAULT_NETWORK=MAINNET, only validates:
+// - RPC_URL_MAINNET
+```
+
+This allows Railway deployments to run TESTNET without needing LOCAL environment variables.
+
 ## Related Documentation
 
 - `NETWORK_CONFIGURATION_FIX.md` - Initial DEFAULT_NETWORK fix
