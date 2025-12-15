@@ -1,0 +1,112 @@
+# Frontend Repository package.json (Updated)
+
+This is the updated package.json for the frontend repository after backend split.
+
+```json
+{
+  "$schema": "https://json.schemastore.org/package",
+  "name": "secondorder-fun",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "preview-https": "vite preview --https",
+    "test": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest",
+    "lint": "eslint . --max-warnings 0",
+    "copy-abis": "node scripts/copy-abis.js",
+    "update-env": "node scripts/update-env-addresses.js"
+  },
+  "dependencies": {
+    "@base-org/account": "^2.4.2",
+    "@farcaster/auth-kit": "^0.1.4",
+    "@radix-ui/react-accordion": "^1.2.12",
+    "@radix-ui/react-collapsible": "^1.1.12",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-separator": "^1.1.7",
+    "@radix-ui/react-tabs": "^1.1.13",
+    "@radix-ui/react-toast": "^1.2.15",
+    "@radix-ui/react-tooltip": "^1.2.8",
+    "@rainbow-me/rainbowkit": "^2.2.8",
+    "@tanstack/react-query": "^5.0.0",
+    "@tanstack/react-query-devtools": "^5.84.1",
+    "@tanstack/react-table": "^8.21.3",
+    "axios": "^1.12.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "embla-carousel-react": "^8.6.0",
+    "i18next": "^25.5.2",
+    "i18next-browser-languagedetector": "^8.2.0",
+    "i18next-http-backend": "^3.0.2",
+    "lucide-react": "^0.539.0",
+    "prop-types": "^15.8.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-i18next": "^16.0.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.0.0",
+    "recharts": "^3.3.0",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss-animate": "^1.0.7",
+    "viem": "^2.33.3",
+    "wagmi": "^2.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.7.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "@vitest/ui": "^1.0.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^8.56.0",
+    "eslint-plugin-react": "^7.33.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "jsdom": "^26.1.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "vite": "^6.2.0",
+    "vitest": "^1.0.0"
+  }
+}
+```
+
+## Changes from Monorepo
+
+### Removed Dependencies
+
+- `@fastify/cors`, `@fastify/helmet`, `@fastify/rate-limit` (backend)
+- `@supabase/supabase-js` (backend handles DB)
+- `fastify`, `hono` (backend servers)
+- `ioredis` (backend cache)
+- `jsonwebtoken` (backend auth)
+- `ws` (backend WebSocket)
+- `dotenv` (not needed in Vite - uses .env natively)
+- `concurrently` (no longer running backend)
+
+### Removed Scripts
+
+- `dev:backend`, `dev:backend:local`, `start:backend`
+- `anvil`, `deploy:anvil`, `anvil:deploy` (moved to contracts repo)
+- `kill:zombies`, `dev:stack` (no longer needed)
+- `reset:local-db`, `scan:historical` (backend scripts)
+
+### Kept Dependencies
+
+- All React and UI libraries
+- Viem and Wagmi (frontend Web3)
+- RainbowKit and Farcaster Auth
+- i18next (frontend i18n)
+- Axios (API calls to backend)
+- All testing libraries
