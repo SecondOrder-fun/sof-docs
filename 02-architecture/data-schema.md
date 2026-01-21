@@ -13,12 +13,12 @@ The following models align with the current smart contracts, InfoFi roadmap, and
 ```typescript
 type Season = {
   seasonId: number;                 // Unique season/raffle ID (uint256 onchain)
-  status: number;                   // Enum-like numeric status (e.g., 0=Uninitialized,1=Active,2=Ended)
+  status: number;                   // On-chain SeasonStatus enum (0=NotStarted,1=Active,2=EndRequested,3=VRFPending,4=Distributing,5=Completed)
   raffleContract: string;           // Address of the Raffle contract
   bondingCurveContract: string;     // Address of the curve/ticket token
   startTime: number;                // Unix ms
   endTime: number;                  // Unix ms
-  winnerCount: number;              // 1,3,5,10, etc.
+  winnerCount: number;              // Always 1 (single grand prize winner). Consolation is split across all non-winners.
   totalTickets: number;             // Current total supply of tickets
   vrfRequestId?: string;            // Optional VRF request identifier
   vrfStatus?: string;               // 'none' | 'requested' | 'fulfilled' | 'failed'
@@ -26,6 +26,8 @@ type Season = {
   consolationPoolSof?: string;
   buyFeeBps?: number;               // e.g., 10 = 0.1%
   sellFeeBps?: number;              // e.g., 70 = 0.7%
+  grandWinnerAddress?: string;       // Present when status === Completed
+  grandPrizeSof?: string;            // Present when status === Completed (string for bigints)
 }
 ```
 
@@ -164,7 +166,7 @@ type PricingSnapshot = MarketPricingCache;
   "totalPrize": "10.5",       // String - Total prize pool
   "totalPrizeToken": "ETH",   // String - Token of the prize pool
   "totalTickets": 105,         // Integer - Total number of tickets sold
-  "winnerCount": 3,            // Integer - Number of winners
+  "winnerCount": 1,            // Integer - Number of winners (always 1 in this system)
   "status": "active",         // String - Status of the raffle (active, completed, cancelled)
   "participants": 87           // Integer - Number of participants
 }
