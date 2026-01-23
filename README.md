@@ -4,39 +4,48 @@ Welcome to the comprehensive documentation for SecondOrder.fun - a full-stack We
 
 ## 📚 Documentation Sections
 
-### [Product Documentation](01-product/)
+### [Product Documentation](product/)
+
 Learn about the product vision, tokenomics, and game mechanics.
 
-### [Architecture](02-architecture/)
+### [Architecture](architecture/)
+
 Technical architecture, requirements, and system design.
 
-### [Development Guides](03-development/)
+### [Development Guides](development/)
+
 Guidelines for contributing and developing features.
 
-### [API Reference](04-api/)
+### [API Reference](api/)
+
 Complete API documentation for all endpoints.
 
-### [Features](05-features/)
-Detailed documentation of implemented features.
+### [Reference](reference/)
 
-### [Technical Analysis](06-technical-analysis/)
+Supporting reference documentation (planning, features, technical analysis).
+
+### [Technical Analysis](reference/technical-analysis/)
+
 Deep dives into technical decisions and optimizations.
 
-### [Changelog](07-changelog/)
+### [History](history/)
+
 Implementation history and progress tracking.
 
-### [Bug Fixes](08-bug-fixes/)
+### [Incidents](incidents/)
+
 Documentation of bugs found and fixed.
 
-### [Investigations](09-investigations/)
+### [Investigations](investigations/)
+
 Debug logs and investigation reports.
 
 ## 🚀 Quick Start
 
-- [Project Requirements](02-architecture/requirements.md)
-- [Project Structure](02-architecture/structure.md)
-- [Development Tasks](03-development/tasks.md)
-- [Quick Reference](03-development/quick-reference.md)
+- [Project Requirements](architecture/requirements.md)
+- [Project Structure](architecture/structure.md)
+- [Development Tasks](development/tasks.md)
+- [Quick Reference](development/quick-reference.md)
 
 ## 🔗 Related Resources
 
@@ -45,4 +54,4 @@ Debug logs and investigation reports.
 
 ## 📝 Contributing to Docs
 
-All documentation should be added to the appropriate section following our structure. See [Development Guidelines](03-development/frontend-guidelines.md) for more information.
+All documentation should be added to the appropriate section following our structure. See [Development Guidelines](development/frontend-guidelines.md) for more information.

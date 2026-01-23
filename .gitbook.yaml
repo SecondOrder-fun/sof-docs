@@ -5,4 +5,40 @@ structure:
   summary: SUMMARY.md
 
 redirects:
-  previous/page: new-folder/page.md
+  01-product/: product/
+  01-product/README.md: product/README.md
+  01-product/framework.md: product/framework.md
+  01-product/tokenomics.md: product/tokenomics.md
+  01-product/bonding-curve.md: product/bonding-curve.md
+  01-product/liquidity-rewards.md: product/liquidity-rewards.md
+  01-product/winner-selection.md: product/winner-selection.md
+
+  02-architecture/: architecture/
+  02-architecture/README.md: architecture/README.md
+  02-architecture/requirements.md: architecture/requirements.md
+  02-architecture/structure.md: architecture/structure.md
+  02-architecture/data-schema.md: architecture/data-schema.md
+  02-architecture/infofi-integration/: architecture/infofi-integration/
+
+  03-development/: development/
+  03-development/README.md: development/README.md
+  03-development/frontend-guidelines.md: development/frontend-guidelines.md
+  03-development/tasks.md: development/tasks.md
+  03-development/prediction-market-plan.md: development/prediction-market-plan.md
+  03-development/quick-reference.md: development/quick-reference.md
+
+  04-api/: api/
+  04-api/README.md: api/README.md
+
+  00-project/: reference/project/00-project/
+  01-planning/: reference/planning/
+  05-features/: reference/features/
+  06-technical-analysis/: reference/technical-analysis/
+
+  07-changelog/: history/
+  08-bug-fixes/: incidents/bug-fixes/
+  09-investigations/: investigations/research/
+  fixes/: incidents/fixes/
+
+  CRITICAL_BUG_FIX.md: architecture/infofi/critical-bug-factory-not-set.md
+  INFOFI_POSITION_UPDATES.md: architecture/infofi/position-updates.md
