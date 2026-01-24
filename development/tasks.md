@@ -9,13 +9,11 @@ SecondOrder.fun is a full-stack Web3 platform that transforms cryptocurrency spe
 - [x] Cannot buy tickets in the active raffle (Resolved 2025-08-20; see Latest Progress).
 
 - [x] Admin Panel Raffle Flow not working (Resolved 2025-09-29)
-
   - Symptom: End-to-end raffle completion process in Admin Panel was failing.
   - Scope: VRF fulfillment and prize distribution in `useFundDistributor.js`.
   - Resolution: Fixed account parameter in Viem v2 writeContract calls and added SOF balance invalidation.
 
 - [x] Cannot sell tickets to close position in raffle (Resolved 2025-10-01)
-
   - Symptom: "Sell Max" button would revert with errors when trying to sell all tokens.
   - Scope: Raffle sell path only (InfoFi market buy/sell is separate and in progress).
   - Root Cause: Two issues: (1) Discrete bonding curve's `calculateSellPrice()` could return a value slightly higher than actual reserves due to rounding in step-based pricing, and (2) InfoFiMarketFactory would revert when totalTickets became 0.
@@ -51,87 +49,7 @@ Note: Backend API tests are now green locally (see Latest Progress for details).
 
 ### 2. Prize Pool Sponsorship Feature
 
-- [ ] **Smart Contract Implementation (Multi-Token Support)**
-  - [ ] Add `sponsorPrizeERC20(uint256 seasonId, address token, uint256 amount)` function to `SOFBondingCurve.sol`
-    - Accept any ERC-20 token from any address
-    - Store in separate mapping: `mapping(uint256 => mapping(address => uint256)) public sponsoredTokens`
-    - If token is $SOF, add to `sofReserves` without minting tickets
-    - If token is other ERC-20, store separately for later distribution
-    - Emit `PrizeSponsored(address indexed sponsor, uint256 seasonId, address token, uint256 amount)` event
-    - Require season is active or not started (not locked)
-    - Use SafeERC20 for token transfers
-  - [ ] Add `sponsorPrizeAtCreation(address[] tokens, uint256[] amounts)` parameter to season creation flow
-    - Allow initial multi-token sponsorship during `createSeason()`
-    - Transfer tokens from creator to curve contract
-    - Validate arrays have matching lengths
-  - [ ] Add view functions for sponsored tokens
-    - `getSponsoredTokens(uint256 seasonId)` returns array of token addresses
-    - `getSponsoredAmount(uint256 seasonId, address token)` returns amount
-    - `getTotalSponsors(uint256 seasonId)` returns count of unique sponsors
-  - [ ] Add access control: anyone can sponsor (permissionless)
-  - [ ] Add Foundry tests for multi-token sponsorship
-    - Test $SOF sponsorship (adds to sofReserves)
-    - Test other ERC-20 sponsorship (stored separately)
-    - Test multiple token types in single season
-    - Test sponsorship during season creation
-    - Test sponsorship during active season
-    - Test rejection when season is locked
-    - Test SafeERC20 transfer failures
-
-- [ ] **Prize Distribution Integration**
-  - [ ] Update `RafflePrizeDistributor.sol` to handle multi-token prizes
-    - Add `claimSponsoredToken(uint256 seasonId, address token)` function
-    - Winner can claim all sponsored ERC-20 tokens
-    - Track claimed tokens per season per winner
-    - Emit `SponsoredTokenClaimed(address indexed winner, uint256 seasonId, address token, uint256 amount)`
-  - [ ] Update prize extraction flow in `Raffle.sol`
-    - Extract sponsored tokens from curve to distributor
-    - Configure distributor with sponsored token list
-
-- [ ] **Frontend UI Implementation**
-  - [ ] Add "Initial Sponsorship" section to `CreateSeasonForm.jsx`
-    - Token selector dropdown (common ERC-20s + custom address input)
-    - Amount input with balance display
-    - "Add Token" button to add multiple sponsorships
-    - List of added sponsorships with remove option
-    - Validate sufficient balance for each token
-    - Include in createSeason transaction
-  - [ ] Add "Sponsor Prize Pool" widget to `RaffleDetails.jsx`
-    - Display current prize pool breakdown by token
-    - Token selector for sponsorship
-    - Amount input with balance check
-    - "Sponsor" button with approval flow
-    - Show transaction status
-    - Only visible when season is active or not started
-  - [ ] Add sponsorship history display
-    - List sponsors with token type and amount
-    - Group by token type
-    - Show total sponsored per token
-    - Show sponsor addresses with profile links
-  - [ ] Update prize claim UI to show all claimable tokens
-    - List all sponsored ERC-20s winner can claim
-    - Individual claim buttons per token
-    - Batch claim option for all tokens
-
-- [ ] **Hook Implementation**
-  - [ ] Extend `useCurve.js` with `sponsorPrizeERC20` mutation
-  - [ ] Add `useTokenApproval` hook for ERC-20 approvals
-  - [ ] Add `useSponsoredTokens` hook to fetch sponsored token list
-  - [ ] Add transaction status handling
-
-- [ ] **Testing**
-  - [ ] Vitest tests for multi-token sponsor UI components
-  - [ ] Test token selector and amount validation
-  - [ ] Test approval flow for different tokens
-  - [ ] E2E test for multi-token sponsorship flow
-
-- [ ] **Future Enhancement: NFT Prize Support**
-  - [ ] Add `sponsorPrizeERC721(uint256 seasonId, address nftContract, uint256 tokenId)` function
-  - [ ] Add `sponsorPrizeERC1155(uint256 seasonId, address nftContract, uint256 tokenId, uint256 amount)` function
-  - [ ] Create NFT vault contract for holding sponsored NFTs
-  - [ ] Update winner selection to include NFT prize allocation
-  - [ ] UI for displaying NFT prizes with images/metadata
-  - [ ] NFT claim interface with transfer to winner
+- Canonical implementation is in `RafflePrizeDistributor.sol` (see Latest Progress 2025-10-03). Any prior plan to implement sponsorship via `SOFBondingCurve.sol` is superseded.
 
 ### 3. Trading Lock UI Improvements ✅ COMPLETED
 
@@ -209,7 +127,6 @@ Note: Backend API tests are now green locally (see Latest Progress for details).
 ## Latest Progress (2025-10-03)
 
 - [x] **Prize Pool Sponsorship Feature - COMPLETED**
-
   - **Smart Contract**: Enhanced `RafflePrizeDistributor.sol` with sponsorship functionality:
     - Added `sponsorERC20()` and `sponsorERC721()` permissionless functions
     - Implemented `claimSponsoredERC20()` and `claimSponsoredERC721()` for winners
@@ -224,7 +141,6 @@ Note: Backend API tests are now green locally (see Latest Progress for details).
   - **Impact**: Anyone can now sponsor ERC-20 tokens and NFTs to prize pools
 
 - [x] **Position Display Investigation - RESOLVED**
-
   - **Investigation**: Reviewed all position display logic
   - **Finding**: Position display does NOT depend on raffle names
   - **Architecture**: Already uses seasonId as primary identifier
@@ -233,7 +149,6 @@ Note: Backend API tests are now green locally (see Latest Progress for details).
   - **Documentation**: Created `POSITION_DISPLAY_INVESTIGATION.md`
 
 - [x] **Trading Lock & Wallet Connection UI Improvements - COMPLETED**
-
   - **Frontend**: Enhanced `BuySellWidget.jsx` with dual overlay system:
     - Trading lock detection via `curveConfig.tradingLocked` read from contract
     - Wallet connection check via `useWallet()` hook
@@ -248,7 +163,6 @@ Note: Backend API tests are now green locally (see Latest Progress for details).
   - **UX Impact**: Users can no longer accidentally attempt trades when locked or disconnected
 
 - [x] **Raffle Name Validation - COMPLETED**
-
   - **Smart Contract**: Added `require(bytes(config.name).length > 0, "Raffle: name empty")` validation in `Raffle.sol::createSeason()`
   - **Foundry Test**: Created `testRevertOnEmptySeasonName()` in `RaffleVRF.t.sol` - ✅ PASSING
   - **Frontend UI**: Enhanced `CreateSeasonForm.jsx` with:
@@ -271,7 +185,6 @@ Note: Backend API tests are now green locally (see Latest Progress for details).
 ## Previous Progress (2025-09-30)
 
 - [x] Fixed Invariant Tests
-
   - Fixed HybridPricingInvariant.t.sol to correctly access the InfoFiPriceOracle contract's weights and prices
   - Fixed CategoricalMarketInvariant.t.sol to properly create and test markets
   - Temporarily skipped FullSeasonFlow.t.sol due to circular dependency between Raffle and SeasonFactory
@@ -280,7 +193,6 @@ Note: Backend API tests are now green locally (see Latest Progress for details).
 ## Previous Progress (2025-09-29)
 
 - [x] Simplified SeasonConfig Structure
-
   - Removed redundant `prizePercentage` and `consolationPercentage` fields from `RaffleTypes.SeasonConfig`
   - Updated all contract code to use only `grandPrizeBps` for prize distribution calculations
   - Modified prize calculation in `_setupPrizeDistribution` to use `grandPrizeBps` for grand prize amount and remainder for consolation
@@ -289,7 +201,6 @@ Note: Backend API tests are now green locally (see Latest Progress for details).
   - Note: Some tests need further updates to work with the new structure
 
 - [x] Fixed InfoFiThreshold.t.sol Test Issues
-
   - Added missing methods to `InfoFiMarketFactory` contract: `getMarketCount()`, `getMarketInfo()`, `getMarketId()`, and `hasMarket()`
   - Fixed variable name inconsistencies in the test file to use consistent naming for `marketTypeCode`
   - Adjusted ticket purchase amounts to avoid ERC20InsufficientBalance errors
@@ -298,7 +209,6 @@ Note: Backend API tests are now green locally (see Latest Progress for details).
   - All tests now pass successfully with no warnings
 
 - [x] Enhanced SOF Faucet with Karma System
-
   - Updated `SOFFaucet.sol` to increase claim amount to 10,000 SOF (from 100) and reduce cooldown to 6 hours (from 24)
   - Added `contributeKarma()` function to allow users to return SOF tokens to the faucet for others to use
   - Modified deployment scripts to allocate 99% of SOF tokens to the faucet (1M for deployer, 99M for faucet)
@@ -308,7 +218,6 @@ Note: Backend API tests are now green locally (see Latest Progress for details).
   - Verified end-to-end functionality with local Anvil deployment
 
 - [x] Implemented SOF Faucet System for Beta Testers
-
   - Created `SOFFaucet.sol` contract with configurable distribution, cooldown period, and chain ID restriction
   - Developed `FaucetPage.jsx` component with SOF faucet and Sepolia ETH faucet tabs
   - Added navigation link in header and updated router configuration
@@ -327,14 +236,12 @@ Note: Backend API tests are now green locally (see Latest Progress for details).
 ## Latest Progress (2025-09-10)
 
 - [x] RaffleDetails: "Your Current Position" live update
-
   - Implemented immediate on-chain refresh after Buy/Sell using authoritative sources:
     - Prefer `SOFBondingCurve.playerTickets(address)` and `curveConfig.totalSupply`.
     - Fallback to ticket ERC-20 `balanceOf/totalSupply` (auto-detected via `raffleToken/token/ticketToken/tickets/asset`).
   - Added resilient follow-up refreshes to withstand RPC/indexer lag and clear local override when server snapshot returns.
 
 - [x] Buy/Sell widget header and UX refinements
-
   - Centered, enlarged Buy/Sell tabs as the widget header; larger slippage gear.
   - Labels updated to "Amount to Buy" / "Amount to Sell"; removed Buy MAX.
   - Added transaction toasts (copy hash, explorer link, auto-expire 2 minutes) rendered under the position widget.
@@ -348,14 +255,12 @@ No changes to open Known Issues at this time.
 ## Latest Progress (2025-09-11)
 
 - [x] Consolidated InfoFi positions UI across routes
-
   - Created shared `PositionsPanel` component at `src/components/infofi/PositionsPanel.jsx` used by both `AccountPage` and `UserProfile` to eliminate route divergence.
   - Implemented robust discovery fallback: factory events → enumerate all markets → `readBet()` for YES/NO, mirroring debug logic.
   - Grouped positions by season with per-season SOF subtotals; auto-refresh every 5s.
   - Temporarily display a discovery debug box for verification; scheduled for removal after sign-off.
 
 - [x] InfoFi Market UI parity fixes
-
   - Market card now reads bets with exact `bets(uint256,address,bool)` ABI and displays live on-chain total volume via `getMarket()`.
   - Removed duplicate volume lines and cleaned up MID display in market cards.
 
@@ -365,7 +270,6 @@ No changes to open Known Issues at this time.
 ### InfoFi Trading – Next Tasks (On-chain shift)
 
 - Next Objectives (2025-09-30):
-
   - [✓] [C] RafflePositionTracker Integration (Frontend): implement env + ABI + `useRaffleTracker()` and wire into UI. (Completed)
   - [✓] [B] ArbitrageOpportunityDisplay: build UI leveraging on-chain oracle. (Completed)
     - Created `useArbitrageDetection.js` hook with on-chain arbitrage detection
@@ -375,7 +279,6 @@ No changes to open Known Issues at this time.
     - Future enhancement: Add "Execute Arbitrage" button functionality
 
 - [x] Replace threshold-sync REST with direct on-chain factory call (permissionless)
-
   - UI: call `InfoFiMarketFactory.createWinnerPredictionMarket(seasonId, player)` from frontend
   - Subscribe to `MarketCreated` to refresh view (viem WS when available)
   - Keep backend route only as optional passthrough for now, then remove
@@ -466,22 +369,12 @@ All frontend development setup tasks have been completed:
 - [x] Implement advanced analytics endpoints
 - [x] Create comprehensive API documentation
 - [x] Create database schema and migrations (markets, positions, winnings, pricing cache)
-- [ ] Connect frontend to backend services (query/mutations wired to API)
 
 ### Frontend Features
 
-- [ ] Build raffle display components (season list, ticket positions, odds)
 - [x] Build InfoFi market components with real-time updates
 - [x] Implement arbitrage opportunity display (display-only; execution button pending)
-- [ ] Add "Execute Arbitrage" button functionality (future enhancement)
-  - Implement one-click arbitrage execution
-  - Handle multi-step transactions (buy raffle + sell market or vice versa)
-  - Add slippage protection and gas estimation
-  - Show execution progress and confirmation
-- [ ] Create cross-layer strategy panel
-- [ ] Add settlement status tracking
-- [ ] Build winnings claim interface
-- [ ] User experience refinement (copy, flows, accessibility)
+- Note: Arbitrage execution and cross-layer strategy work has been deferred and removed from the active task list.
 - [x] Implement Admin page authorization (default to deployer `0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`, allow adding more admins)
 
 #### Raffle Ticket Bonding Curve UI (GLICO-style) — Plan (2025-09-10)
@@ -489,49 +382,41 @@ All frontend development setup tasks have been completed:
 Applies Mint Club GLICO layout to our raffle ticket token. Ignore Locking, Airdrops, and Child Tokens. Focus on Graph, Buy/Sell, Transactions, and Token Information + Token Holders tab.
 
 - [ ] Page scaffold and routing
-
   - [ ] Create route `src/routes/Curve.jsx` linked from header nav ("Bonding Curve")
   - [ ] Layout sections: `Graph`, `Buy/Sell`, `Tabs: Transactions | Token Info | Token Holders`
   - [ ] Shared header shows token symbol, network, and season context
 
 - [ ] Bonding Curve Graph
-
   - [x] Hook to read live curve state (current step, current price, minted supply, max supply)
   - [x] Visualize stepped linear curve progress and price ladder
   - [x] Show current price and step index badges (average price pending)
 
 - [ ] Buy/Sell Widget
-
   - [x] Extend `useCurve()` to support quotes via `calculateBuyPrice(uint256)` and `calculateSellPrice(uint256)`
   - [x] SOF allowance flow: detect + prompt `approve(spender, amount)` before buy/sell
   - [x] Execute `buyTokens(amount, maxCost)` and `sellTokens(amount, minProceeds)` with tx status toasts (added copy + explorer link)
   - [ ] Basic validation (positive amounts, sufficient SOF/ticket balance)
 
 - [ ] Transactions Tab
-
   - [ ] Read recent on-chain events (buys/sells) via viem `getLogs` for the curve
   - [ ] Paginate and show: time, wallet (shortened), side (Buy/Sell), amount, price paid/received
   - [ ] Empty and loading states; auto-refresh on interval
 
 - [ ] Token Information Tab
-
   - [ ] Fields: Contract Address, Current / Max Supply, Total Value Locked in $SOF, Bonding Curve Progress
   - [ ] Derive TVL from curve reserves; compute progress = currentSupply / maxSupply
   - [ ] Copy-to-clipboard for addresses
 
 - [ ] Token Holders Tab
-
   - [ ] MVP: top holders and holder count via on-chain reads (iterate holders from events; cache in memory)
   - [ ] Placeholder message if indexer not ready; link to future indexer task
 
 - [ ] Hooks & Wiring
-
   - [ ] `useCurveRead()` (prices, supply, tvl) and `useCurveWrite()` (approve, buy, sell)
   - [ ] Reuse network + contracts from `src/config/networks.js` and `src/config/contracts.js`
   - [ ] SSE/WebSocket not required for v1; periodic polling is acceptable
 
 - [ ] Tests (Vitest)
-
   - [x] Buy/Sell widget: success UI path (labels/header) — baseline
   - [ ] Buy/Sell widget: edge (insufficient allowance), failure (revert)
   - [x] Graph domain: Y-axis first/last step prices
@@ -563,7 +448,6 @@ Applies Mint Club GLICO layout to our raffle ticket token. Ignore Locking, Airdr
 ### Frontend Contract Integration (NEXT)
 
 - **Network & Config**
-
   - [x] Add network toggle UI (Local/Anvil default, Testnet) in a `NetworkToggle` component
   - [x] Provide network config via `src/config/networks.js` (RPC URLs, chain IDs)
   - [x] Provide contract address map via `src/config/contracts.js` (RAFFLE, SOF, BONDING_CURVE per network)
@@ -571,11 +455,9 @@ Applies Mint Club GLICO layout to our raffle ticket token. Ignore Locking, Airdr
   - [x] Update Wagmi config to switch chains dynamically based on toggle
 
 - **Build & Tooling**
-
   - [x] Create script to copy contract ABIs to frontend directory
 
 - **Wagmi/Viem Hooks**
-
   - [x] `useRaffleRead()` for `currentSeasonId()`, `getSeasonDetails(seasonId)`
   - [x] `useRaffleAdmin()` for `createSeason()`, `startSeason()`, `requestSeasonEnd()` (role-gated)
   - [x] `useCurve()` for `buyTickets(amount)`, allowance and SOF approvals
@@ -583,7 +465,6 @@ Applies Mint Club GLICO layout to our raffle ticket token. Ignore Locking, Airdr
   - [x] React Query integration (queries + mutations + invalidation) for reads/writes
 
 - **Routing & Pages**
-
   - [x] Add routes for `/raffles`, `/raffles/:id`, `/admin`, and `/account`
   - [x] Implement `RaffleList` page to show active/current season overview
   - [x] Implement `RaffleDetails` page to show season timings, status, odds, buy form
@@ -607,7 +488,6 @@ Applies Mint Club GLICO layout to our raffle ticket token. Ignore Locking, Airdr
 > Next Objective: Implement ArbitrageOpportunityDisplay [B] now that the Tracker integration [C] is complete.
 
 - **ENV & Addresses**
-
   - [x] Add `.env` support for Vite: `VITE_RPC_URL_LOCAL`, `VITE_RPC_URL_TESTNET`
   - [x] Add `VITE_RAFFLE_ADDRESS_LOCAL`, `VITE_SOF_ADDRESS_LOCAL`, `VITE_SEASON_FACTORY_ADDRESS_LOCAL`, `VITE_INFOFI_MARKET_ADDRESS_LOCAL`
   - [ ] Add testnet equivalents (left empty until deployment)
@@ -624,38 +504,32 @@ Applies Mint Club GLICO layout to our raffle ticket token. Ignore Locking, Airdr
 ### Backend API Alignment (Onchain)
 
 - **Standards & Conventions**
-
   - [ ] Ensure backend follows `instructions/project-structure.md` and `.windsurf/rules/project-framework.md` conventions
   - [ ] Use ES Modules with ES6 imports; prefer TypeScript or JSDoc types
   - [x] Centralize RPC and addresses in `backend/src/config/chain.js` (env-driven)
 
 - **Viem Server Clients**
-
   - [x] Create `backend/src/lib/viemClient.js` with `createPublicClient(http)` per network
   - [ ] Do NOT hold private keys in backend; no signing server-side
   - [ ] Add helpers to build calldata for admin/user actions (frontend signs)
 
 - **Replace Mocked Endpoints with Onchain Reads**
-
   - [ ] GET `/api/raffles` → read current/active seasons from Raffle contract
   - [ ] GET `/api/raffles/:id` → `getSeasonDetails`, state, VRF status
   - [ ] GET `/api/raffles/:id/positions` → aggregate from contract events/state
   - [ ] GET `/api/prices/:marketId` → from `market_pricing_cache` with fallback to onchain oracle if present
 
 - **Transaction Builder Endpoints (No Server Signing)**
-
   - [ ] POST `/api/tx/curve/buy` → returns { to, data, value } for `buyTickets(amount)`
   - [ ] POST `/api/tx/sof/approve` → returns calldata for `approve(spender, amount)`
   - [ ] POST `/api/tx/raffle/admin` → returns calldata for `create/start/requestSeasonEnd` (role-gated in UI)
 
 - **Real-Time & Events**
-
   - [ ] SSE `/stream/raffles/:id/events` → stream contract events (purchases, season changes)
   - [ ] Backfill from logs via viem `getLogs` on connect; then `watchContractEvent`
   - [ ] Wire arbitrage detection to live updates (consumes SSE internally)
 
 - **Security & Ops**
-
   - [x] Rate limit public endpoints; cache hot reads (e.g., season details)
   - [x] Env validation for RPC URLs and addresses; fail fast with helpful errors
   - [x] Add healthcheck that verifies RPC connectivity per network
@@ -805,7 +679,6 @@ This roadmap consolidates the InfoFi specs into executable tasks across contract
 — Execute these in order to enable automatic market creation on threshold without manual backfills.
 
 - **Contracts**
-
   - [x] Implement `PositionUpdate` event in `contracts/src/curve/SOFBondingCurve.sol`.
   - [x] Emit `PositionUpdate` in `buyTokens` and `sellTokens` with `{ player, oldTickets, newTickets, totalTickets }`.
   - [x] On upward cross to ≥1% (old < 100 bps, new ≥ 100 bps), call `InfoFiMarketFactory.onPositionUpdate(player, oldTickets, newTickets, totalTickets)`.
@@ -813,20 +686,17 @@ This roadmap consolidates the InfoFi specs into executable tasks across contract
   - [x] Confirm `InfoFiPriceOracle` grants updater role to factory in `contracts/script/Deploy.s.sol` (already done locally) and mirror on testnet.
 
 - **Backend**
-
   - [ ] Add viem watcher: `watchContractEvent(PositionUpdate)` with debounce and idempotency checks; backfill with `getLogs` on boot.
   - [ ] Endpoint: `POST /api/infofi/markets/sync-threshold` for manual reconciliation by `{ seasonId, playerAddress }`.
   - [ ] SSE pricing stream live at `/stream/pricing/:marketId` using `market_pricing_cache` with initial snapshot + heartbeats.
 
 - **Frontend**
-
   - [x] Add header nav item “Prediction Markets” linking to markets index.
   - [x] Add minimal on-chain UI in `MarketsIndex.jsx` to list season players and create markets via factory (permissionless call).
   - [x] Implement `useInfoFiMarkets(raffleId)` to list markets and positions from chain (no DB); handle empty/error states.
   - [x] Wire Oracle reads/subscriptions: `InfoFiPriceOracle.getMarketPrice(marketId)` and `PriceUpdated` event.
 
 - **ENV & Addresses**
-
   - [x] Add `VITE_INFOFI_FACTORY_ADDRESS`, `VITE_INFOFI_ORACLE_ADDRESS`, `VITE_INFOFI_SETTLEMENT_ADDRESS` to `.env.example` and `.env`.
   - [x] Ensure `scripts/update-env-addresses.js` writes the above keys alongside RAFFLE/SEASON/ SOF.
 
@@ -840,7 +710,6 @@ This roadmap consolidates the InfoFi specs into executable tasks across contract
 Derived from the new prediction market development ruleset. These items complement existing tasks.
 
 - **Smart Contracts**
-
   - [x] Ensure raffle exposes or adapt to `IRaffleContract` interface: `getCurrentSeason()`, `isSeasonActive()`, `getTotalTickets()`, `getPlayerPosition()`, `getPlayerList()`, `getNumberRange()`, `getSeasonWinner()`, `getFinalPlayerPosition()`.
   - [x] Implement `RafflePositionTracker` with snapshots and `MARKET_ROLE`; push updates to markets on position changes.
   - [ ] Implement market contracts (MVP per ruleset):
@@ -852,20 +721,17 @@ Derived from the new prediction market development ruleset. These items compleme
   - [ ] Base chain optimizations: packed storage structs; batch update/resolve.
 
 - **Backend (Realtime + Pricing)**
-
   - [ ] Implement Hybrid Pricing Engine (mirror on-chain formula) persisting to `market_pricing_cache`.
   - [ ] WebSocket gateway emitting: `MARKET_UPDATE`, `RAFFLE_UPDATE`, `MARKET_RESOLVED`, `NEW_MARKET_CREATED` (keep SSE fallback). Types per ruleset.
   - [ ] Event bridge to consume raffle `PositionUpdate`/market events → update pricing cache + broadcast.
 
 - **Frontend**
-
   - [x] Types/hooks for `MarketUpdate` and `RaffleUpdate` implemented in `useInfoFiSocket.js`.
   - [x] Build/complete: `InfoFiMarketCard`, `ProbabilityChart`, `ArbitrageOpportunityDisplay` components.
   - [x] `WinningsClaimPanel` implemented as `ClaimPrizeWidget` in `src/components/prizes/ClaimPrizeWidget.jsx`.
   - [x] Implemented `SettlementStatus` component in `src/components/infofi/SettlementStatus.jsx` with `useSettlement` hook for tracking market resolution.
 
 - **Testing**
-
   - [x] Foundry invariants: shares ≈ liquidity; categorical sum = 100%; hybrid pricing deviation bounds.
     - Implemented `HybridPricingInvariant.t.sol` for testing hybrid pricing bounds and calculations
     - Implemented `CategoricalMarketInvariant.t.sol` for testing market shares and liquidity
@@ -913,12 +779,10 @@ Derived from the new prediction market development ruleset. These items compleme
 Given `onit-markets` is an SDK for Onit's hosted API (no public ABIs for local deploy), we'll integrate by mocking the API locally and swapping the base URL.
 
 - **Env & Config**
-
   - [ ] Add `VITE_ONIT_API_BASE` (frontend) and `ONIT_API_BASE` (backend) to `.env.example`.
   - [ ] Default to `http://localhost:8787` in dev; `https://markets.onit-labs.workers.dev` in prod.
 
 - **Backend (API Mock, Hono/Fastify)**
-
   - [ ] Implement endpoints compatible with `onit-markets` client:
     - [ ] `GET /api/markets` (list)
     - [ ] `POST /api/markets` (mock create)
@@ -928,7 +792,6 @@ Given `onit-markets` is an SDK for Onit's hosted API (no public ABIs for local d
   - [ ] Use SuperJSON-compatible serialization and zod validation (align with SDK expectations).
 
 - **Frontend (Client Wiring)**
-
   - [ ] Create `onitClient.ts` wrapper using `getClient(import.meta.env.VITE_ONIT_API_BASE)`.
   - [ ] Add hooks to consume: list markets, get market, place bet (mock), subscribe to SSE.
   - [ ] Feature-flag switch between local mock and hosted API by env.
@@ -948,7 +811,6 @@ This plan adopts a Merkle-based distributor pattern (inspired by Mint.club's `Me
 ### Design Summary
 
 - **Grand Prize Split**
-
   - Add `grandPrizeBps` to `RaffleTypes.SeasonConfig` (default MVP 6500 = 65%).
   - On season finalization, compute:
     - `grand = totalPrizePool * grandPrizeBps / 10000`
@@ -956,7 +818,6 @@ This plan adopts a Merkle-based distributor pattern (inspired by Mint.club's `Me
   - Select grand winner as `winners[0]` (MVP single grand winner) and record `grandWinnerTickets` (optional, but we WILL use it for correct denominator logic).
 
 - **RafflePrizeDistributor (new)**
-
   - Holds SOF prize funds and manages claims.
   - Two claim paths:
     - Grand winner: single allocation (`claimGrand(seasonId)`).
@@ -976,7 +837,6 @@ This plan adopts a Merkle-based distributor pattern (inspired by Mint.club's `Me
 ### Contract Work Items
 
 - **RafflePrizeDistributor.sol**
-
   - Roles: DEFAULT_ADMIN_ROLE, RAFFLE_ROLE.
   - `configureSeason`, `fundSeason`, `claimGrand`, `claimConsolation(index, account, amount, proof)`, `isClaimed(index)`.
   - Events: `SeasonConfigured`, `SeasonFunded`, `GrandClaimed`, `ConsolationClaimed`.
@@ -984,7 +844,6 @@ This plan adopts a Merkle-based distributor pattern (inspired by Mint.club's `Me
   - Tests: allocation correctness, double-claim protection, Merkle proof validation, unfunded/unfinished guards, grand-only claimant allowed.
 
 - **Raffle.sol wiring**
-
   - Add `grandPrizeBps` to `SeasonConfig` (default 6500).
   - In `_setupPrizeDistribution`:
     - Compute `grand` and `consolation` as above.
@@ -1003,12 +862,10 @@ This plan adopts a Merkle-based distributor pattern (inspired by Mint.club's `Me
 ### UI Work Items
 
 - **Address format & profile links**
-
   - Add `shortAddress(addr) => 0x1234…7890` helper.
   - `AddressLink` component links to `/users/:address`.
 
 - **Rewards Panels** (My Account actionable, User Profile read-only)
-
   - Raffle Rewards: per season row with grand/consolation amounts, claim buttons (if applicable), and status (Funded/Configured).
   - InfoFi Rewards: continue using Claim Center for market payouts; Rewards panel can display historical claimed entries.
 
@@ -1290,7 +1147,6 @@ Goal: Automatically create an InfoFi prediction market for a player as soon as t
 ## Latest Progress (2025-08-21)
 
 - **Frontend (on-chain registry UI)**: Added `src/services/onchainInfoFi.js` with viem helpers and updated `src/routes/MarketsIndex.jsx` to:
-
   - Load on-chain season players via `InfoFiMarketFactory.getSeasonPlayers(seasonId)`
   - Submit permissionless tx `createWinnerPredictionMarket(seasonId, player)`
   - Prepare for event subscriptions (MarketCreated)
@@ -1357,7 +1213,6 @@ Goal: Automatically create an InfoFi prediction market for a player as soon as t
 ### Smart Contract Development
 
 - [x] Create `SOFFaucet.sol` contract with the following features:
-
   - [x] ERC20 token distribution with configurable amount
   - [x] Cooldown period between claims (e.g., 24 hours)
   - [x] Chain ID restriction (Anvil/Sepolia only)
@@ -1373,13 +1228,11 @@ Goal: Automatically create an InfoFi prediction market for a player as soon as t
 ### Frontend Development
 
 - [x] Create `FaucetPage.jsx` component with:
-
   - [x] SOF faucet tab with claim functionality
   - [x] Sepolia ETH faucet tab with external links
   - [x] Balance display and cooldown timer
 
 - [x] Enhance `FaucetWidget.jsx` with:
-
   - [x] Tabbed interface for claim and karma contribution
   - [x] Input field for karma amount
   - [x] Transaction status and success indicators
@@ -1393,7 +1246,6 @@ Goal: Automatically create an InfoFi prediction market for a player as soon as t
 ### Integration & Configuration
 
 - [x] Update contract address configuration:
-
   - [x] Add faucet address to `contracts.js`
   - [x] Update `.env.example` with faucet variables
 
@@ -1403,7 +1255,6 @@ Goal: Automatically create an InfoFi prediction market for a player as soon as t
 ### Test Implementation
 
 - [x] Write Solidity tests for `SOFFaucet.sol`:
-
   - [x] Test initial state and configuration
   - [x] Test claim functionality and cooldown
   - [x] Test chain ID restriction

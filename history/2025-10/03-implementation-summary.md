@@ -65,24 +65,10 @@ Successfully completed the **Raffle Name Validation** feature and updated the **
 
 **Updated Plan**: Support any ERC-20 token from the start
 
-### New Architecture
+### Canonical Architecture
 
-**Smart Contract Design**:
-
-- `sponsorPrizeERC20(uint256 seasonId, address token, uint256 amount)` function
-- Separate storage: `mapping(uint256 => mapping(address => uint256)) public sponsoredTokens`
-- Special handling for $SOF (adds to `sofReserves`)
-- Other ERC-20s stored separately for distribution
-- Multi-token prize distribution via `RafflePrizeDistributor.sol`
-
-**Frontend Features**:
-
-- Token selector dropdown (common ERC-20s + custom address)
-- Multi-token sponsorship support
-- Prize breakdown display by token type
-- Individual and batch claim options for winners
-
-**Future Enhancement**: NFT support (ERC-721 and ERC-1155)
+- Sponsorship is implemented canonically in `RafflePrizeDistributor.sol`.
+- The prior planning notes that referenced implementing sponsorship via `SOFBondingCurve.sol` are superseded.
 
 ## Files Created/Modified
 
@@ -105,10 +91,8 @@ Based on the updated `instructions/project-tasks.md`:
 
 ### 1. Prize Pool Sponsorship Feature (NEXT)
 
-- Implement multi-token sponsorship in smart contracts
-- Add prize distribution logic
-- Build frontend UI for token selection and sponsorship
-- Create comprehensive tests
+- Sponsorship is already implemented in `RafflePrizeDistributor.sol`.
+- Remaining work (if any) should focus on UI polish and/or additional test coverage for the canonical distributor implementation.
 
 ### 2. Trading Lock UI Improvements
 

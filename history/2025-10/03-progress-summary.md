@@ -11,6 +11,7 @@ Completed **3 out of 5 critical priority tasks** in a single session, significan
 **Status**: ✅ COMPLETE
 
 **Implementation**:
+
 - Smart contract validation in `Raffle.sol`
 - Frontend validation in `CreateSeasonForm.jsx`
 - Comprehensive tests (9/9 passing)
@@ -19,6 +20,7 @@ Completed **3 out of 5 critical priority tasks** in a single session, significan
 **Impact**: Prevents unnamed seasons, ensures data quality
 
 **Files**:
+
 - `contracts/src/core/Raffle.sol`
 - `contracts/test/RaffleVRF.t.sol`
 - `src/components/admin/CreateSeasonForm.jsx`
@@ -30,6 +32,7 @@ Completed **3 out of 5 critical priority tasks** in a single session, significan
 **Status**: ✅ COMPLETE
 
 **Implementation**:
+
 - Trading lock detection from contract state
 - Visual overlay with backdrop blur
 - Button disabling and early returns
@@ -39,6 +42,7 @@ Completed **3 out of 5 critical priority tasks** in a single session, significan
 **Impact**: Prevents failed transactions when season ends
 
 **Files**:
+
 - `src/components/curve/BuySellWidget.jsx`
 - `contracts/src/curve/SOFBondingCurve.sol`
 - `contracts/test/RaffleVRF.t.sol`
@@ -49,6 +53,7 @@ Completed **3 out of 5 critical priority tasks** in a single session, significan
 **Status**: ✅ COMPLETE
 
 **Implementation**:
+
 - Wallet connection check
 - Visual overlay with "Connect Wallet" button
 - Priority handling (trading lock takes precedence)
@@ -57,6 +62,7 @@ Completed **3 out of 5 critical priority tasks** in a single session, significan
 **Impact**: Guides users to connect wallet before trading
 
 **Files**:
+
 - `src/components/curve/BuySellWidget.jsx` (same as trading lock)
 - `TRADING_LOCK_WALLET_GUARD_IMPLEMENTATION.md`
 
@@ -67,6 +73,7 @@ Completed **3 out of 5 critical priority tasks** in a single session, significan
 **Status**: PLAN UPDATED
 
 **Changes**:
+
 - Modified to support **any ERC-20 token from the start**
 - Added multi-token prize distribution architecture
 - NFT support (ERC-721/1155) planned as future enhancement
@@ -78,7 +85,7 @@ Completed **3 out of 5 critical priority tasks** in a single session, significan
 
 ### Smart Contract Tests: 9/9 PASSING ✅
 
-```
+```text
 [PASS] testAccessControlEnforced()
 [PASS] testPrizePoolCapturedFromCurveReserves()
 [PASS] testRequestSeasonEndFlowLocksAndCompletes()
@@ -126,6 +133,7 @@ Completed **3 out of 5 critical priority tasks** in a single session, significan
 **Status**: READY TO IMPLEMENT
 
 **Scope**:
+
 - Multi-token ERC-20 support
 - Sponsorship during season creation and active period
 - Prize distribution integration
@@ -138,6 +146,7 @@ Completed **3 out of 5 critical priority tasks** in a single session, significan
 **Status**: NEEDS INVESTIGATION
 
 **Scope**:
+
 - Identify name-dependent display logic
 - Remove name dependency
 - Use season ID or bonding curve address
@@ -183,10 +192,10 @@ Completed **3 out of 5 critical priority tasks** in a single session, significan
 **Why**: High-value feature, plan is complete, clear implementation path
 
 **Steps**:
-1. Implement `sponsorPrizeERC20()` in `SOFBondingCurve.sol`
-2. Add view functions for sponsored tokens
-3. Create frontend token selector UI
-4. Add comprehensive tests
+
+1. Continue iterating on the canonical sponsorship implementation in `RafflePrizeDistributor.sol`
+2. Add/expand frontend sponsorship UI (if needed)
+3. Add/expand tests around the canonical implementation
 
 **Estimated Effort**: 2-3 hours
 
@@ -195,6 +204,7 @@ Completed **3 out of 5 critical priority tasks** in a single session, significan
 **Why**: Smaller scope, addresses known issue
 
 **Steps**:
+
 1. Investigate name-dependent logic
 2. Refactor to use season ID
 3. Add fallback display
@@ -216,6 +226,6 @@ Completed **3 out of 5 critical priority tasks** in a single session, significan
 - ✅ Validated season names (data integrity)
 - ✅ Trading lock protection (UX safety)
 - ✅ Wallet connection guards (user guidance)
-- ✅ Updated multi-token sponsorship plan (future-ready)
+- ✅ Updated multi-token sponsorship plan (future-ready; canonical implementation is `RafflePrizeDistributor.sol`)
 
 All smart contract tests passing, documentation complete, and ready to proceed with next priorities.
