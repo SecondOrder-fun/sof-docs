@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This document outlines a comprehensive implementation plan for integrating Hats Protocol into SecondOrder.fun to enable **permissionless raffle creation** through stake-based eligibility. Users who stake 50K $SOF receive a "Raffle Creator" Hat, which grants them the authority to create new seasons/raffles without requiring manual admin approval.
+This document outlines a comprehensive implementation plan for integrating Hats Protocol into SecondOrder.fun to enable **permissionless raffle creation** through stake-based eligibility. Users who stake 50K $SOF receive a "Sponsor" Hat, which grants them the authority to create new seasons/raffles without requiring manual admin approval.
 
 ---
 
@@ -89,7 +89,7 @@ StakingEligibility:    0x... (implementation - deploy instance via factory)
               ┌────────────────┼────────────────┐
               │                │                │
    ┌──────────▼────────┐ ┌─────▼─────┐ ┌───────▼───────┐
-   │  Raffle Creator   │ │   Judge   │ │  Recipient    │
+   │  Sponsor   │ │   Judge   │ │  Recipient    │
    │   Hat (0x1.1)     │ │   Hat     │ │    Hat        │
    │                   │ │ (0x1.2)   │ │  (0x1.3)      │
    │  Eligibility:     │ │           │ │               │
@@ -122,7 +122,7 @@ User wants to create raffle
 │ 3. Create Raffle      │
 │    Raffle.createSeason│
 │    checks balanceOf   │
-│    (Raffle Creator Hat│
+│    (Sponsor Hat│
 └───────────────────────┘
 ```
 
@@ -154,14 +154,14 @@ contract Raffle is RaffleStorage, AccessControl, ReentrancyGuard, VRFConsumerBas
     
     // Hats Protocol integration
     IHats public immutable HATS;
-    uint256 public raffleCreatorHatId;
+    uint256 public sponsorHatId;
     
     // Keep existing role for backwards compatibility / emergency admin
     bytes32 public constant SEASON_CREATOR_ROLE = keccak256("SEASON_CREATOR_ROLE");
     
     // New modifier that checks hat OR role
     modifier canCreateSeason() {
-        bool hasHat = raffleCreatorHatId != 0 && HATS.isWearerOfHat(msg.sender, raffleCreatorHatId);
+        bool hasHat = sponsorHatId != 0 && HATS.isWearerOfHat(msg.sender, sponsorHatId);
         bool hasRole = hasRole(SEASON_CREATOR_ROLE, msg.sender);
         
         if (!hasHat && !hasRole) revert UnauthorizedCaller();
@@ -181,10 +181,10 @@ contract Raffle is RaffleStorage, AccessControl, ReentrancyGuard, VRFConsumerBas
     
     /**
      * @notice Set the Hat ID that grants raffle creation rights
-     * @param _hatId The Hats Protocol hat ID for Raffle Creators
+     * @param _hatId The Hats Protocol hat ID for Sponsors
      */
     function setRaffleCreatorHat(uint256 _hatId) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        raffleCreatorHatId = _hatId;
+        sponsorHatId = _hatId;
         emit RaffleCreatorHatUpdated(_hatId);
     }
     
@@ -206,7 +206,7 @@ contract Raffle is RaffleStorage, AccessControl, ReentrancyGuard, VRFConsumerBas
      * @return bool True if account can create seasons
      */
     function canCreateSeason(address account) external view returns (bool) {
-        bool hasHat = raffleCreatorHatId != 0 && HATS.isWearerOfHat(account, raffleCreatorHatId);
+        bool hasHat = sponsorHatId != 0 && HATS.isWearerOfHat(account, sponsorHatId);
         bool hasRole = hasRole(SEASON_CREATOR_ROLE, account);
         return hasHat || hasRole;
     }
@@ -276,10 +276,10 @@ contract DeployHatsIntegration is Script {
             "ipfs://..." // Image URI
         );
         
-        // 2. Create Raffle Creator Hat (child of Top Hat)
-        uint256 raffleCreatorHatId = hats.createHat(
+        // 2. Create Sponsor Hat (child of Top Hat)
+        uint256 sponsorHatId = hats.createHat(
             topHatId,                    // Admin hat
-            "Raffle Creator",            // Details
+            "Sponsor",            // Details
             100,                         // Max supply (100 concurrent creators)
             address(0),                  // Eligibility (set after module deploy)
             address(0),                  // Toggle (active by default)
@@ -321,14 +321,14 @@ contract DeployHatsIntegration is Script {
         
         address stakingEligibility = factory.createHatsModule(
             STAKING_ELIGIBILITY_IMPL,
-            raffleCreatorHatId,
+            sponsorHatId,
             otherImmutableArgs,
             initData,
             uint256(keccak256(abi.encodePacked(block.timestamp, msg.sender))) // salt
         );
         
         // 6. Set eligibility module on the hat
-        hats.changeHatEligibility(raffleCreatorHatId, stakingEligibility);
+        hats.changeHatEligibility(sponsorHatId, stakingEligibility);
         
         // 7. Mint Judge hat to DAO Safe (or designated judges)
         // hats.mintHat(judgeHatId, daoSafeAddress);
@@ -339,7 +339,7 @@ contract DeployHatsIntegration is Script {
         vm.stopBroadcast();
         
         console.log("Top Hat ID:", topHatId);
-        console.log("Raffle Creator Hat ID:", raffleCreatorHatId);
+        console.log("Sponsor Hat ID:", sponsorHatId);
         console.log("Judge Hat ID:", judgeHatId);
         console.log("Recipient Hat ID:", recipientHatId);
         console.log("Staking Eligibility:", stakingEligibility);
@@ -378,7 +378,7 @@ If we want hat wearers to also have Safe signing authority (optional, for advanc
 ```
 1. Deploy Hats tree with Top Hat worn by existing Safe
 2. Safe is admin of all child hats
-3. Raffle Creator eligibility is purely stake-based
+3. Sponsor eligibility is purely stake-based
 4. No Hats Signer Gate needed
 ```
 
@@ -390,13 +390,13 @@ If we want hat-gated signing on a dedicated "Raffle Approvals" Safe:
 // Deploy via Hats App UI or script:
 // 1. Deploy HatsSignerGate with:
 //    - ownerHatId: topHatId
-//    - signerHatId: raffleCreatorHatId
+//    - signerHatId: sponsorHatId
 //    - minThreshold: 1
 //    - targetThreshold: 3
 //    - maxSigners: 10
 
 // 2. This creates a Safe where:
-//    - Anyone wearing Raffle Creator hat can sign
+//    - Anyone wearing Sponsor hat can sign
 //    - 3-of-N signatures required for execution
 ```
 
@@ -477,7 +477,15 @@ For SecondOrder.fun's use case, **Option A is sufficient**:
 
 ### Slashing Criteria
 
-Define clear criteria for when a Raffle Creator can be slashed:
+**Minimum-level offenses (clear-cut, slashable):**
+
+| Offense | Detection Method | Enforcement |
+|---------|------------------|-------------|
+| **Winning own raffle** | `winner == sponsor` on-chain | Auto-slash or contract blocks |
+| **Withdrawing sponsor prize** | Sponsor transfers prize before distribution | Judge-initiated slash |
+| **Cancelling before end date** | `emergencyEnd` called before `endTime` by sponsor | Judge-initiated slash |
+
+**Additional offenses (Judge discretion):**
 
 1. **Creating fraudulent raffles** (fake prizes, rigged outcomes)
 2. **Abandoning active raffles** (not finalizing, not distributing prizes)
@@ -486,7 +494,7 @@ Define clear criteria for when a Raffle Creator can be slashed:
 
 ### Emergency Procedures
 
-1. **Pause Hat**: Toggle module can deactivate the Raffle Creator hat
+1. **Pause Hat**: Toggle module can deactivate the Sponsor hat
 2. **Slash Stake**: Judge hat wearers can slash misbehaving creators
 3. **Revoke Role**: Admin can always revoke SEASON_CREATOR_ROLE as fallback
 4. **Upgrade Eligibility**: Admin can change eligibility module if compromised
@@ -527,7 +535,7 @@ Define clear criteria for when a Raffle Creator can be slashed:
 contract HatsIntegrationTest is Test {
     function test_StakeAndWearHat() public {
         // Stake 50K SOF
-        // Assert user is now wearer of Raffle Creator hat
+        // Assert user is now wearer of Sponsor hat
     }
     
     function test_CreateSeasonWithHat() public {
@@ -601,9 +609,9 @@ contract HatsIntegrationE2E is Test {
 
 - [ ] Deploy Hats tree
 - [ ] Deploy StakingEligibility module
-- [ ] Configure eligibility on Raffle Creator hat
+- [ ] Configure eligibility on Sponsor hat
 - [ ] Deploy updated Raffle contract
-- [ ] Set raffleCreatorHatId in Raffle
+- [ ] Set sponsorHatId in Raffle
 - [ ] Mint Judge hat to test accounts
 - [ ] Mint Recipient hat to test treasury
 - [ ] Test full flow end-to-end
@@ -657,7 +665,7 @@ All Hats Protocol contracts are deployed at identical addresses on both chains.
 | Hat | ID | Description |
 |-----|-----|-------------|
 | Top Hat | TBD | DAO governance root (worn by Safe) |
-| Raffle Creator | TBD | Stake-gated creator role (50K SOF) |
+| Sponsor | TBD | Stake-gated creator role (50K SOF) |
 | Judge | TBD | Can slash bad actors |
 | Recipient | TBD | Receives slashed stakes (Treasury) |
 
@@ -747,7 +755,7 @@ import "../lib/IHats.sol";
 
 // Add state variable
 IHats public immutable HATS;
-uint256 public raffleCreatorHatId;
+uint256 public sponsorHatId;
 
 // Add event
 event RaffleCreatorHatUpdated(uint256 indexed hatId);
@@ -766,9 +774,9 @@ constructor(
 
 // Add new modifier
 modifier canCreateSeason() {
-    bool hasHat = raffleCreatorHatId != 0 && 
-                  HATS.isWearerOfHat(msg.sender, raffleCreatorHatId) &&
-                  HATS.isInGoodStanding(msg.sender, raffleCreatorHatId);
+    bool hasHat = sponsorHatId != 0 && 
+                  HATS.isWearerOfHat(msg.sender, sponsorHatId) &&
+                  HATS.isInGoodStanding(msg.sender, sponsorHatId);
     bool hasRole = hasRole(SEASON_CREATOR_ROLE, msg.sender);
     
     if (!hasHat && !hasRole) revert UnauthorizedCaller();
@@ -777,15 +785,15 @@ modifier canCreateSeason() {
 
 // Add admin function
 function setRaffleCreatorHat(uint256 _hatId) external onlyRole(DEFAULT_ADMIN_ROLE) {
-    raffleCreatorHatId = _hatId;
+    sponsorHatId = _hatId;
     emit RaffleCreatorHatUpdated(_hatId);
 }
 
 // Add view function
 function canAccountCreateSeason(address account) external view returns (bool) {
-    bool hasHat = raffleCreatorHatId != 0 && 
-                  HATS.isWearerOfHat(account, raffleCreatorHatId) &&
-                  HATS.isInGoodStanding(account, raffleCreatorHatId);
+    bool hasHat = sponsorHatId != 0 && 
+                  HATS.isWearerOfHat(account, sponsorHatId) &&
+                  HATS.isInGoodStanding(account, sponsorHatId);
     bool hasRole = hasRole(SEASON_CREATOR_ROLE, account);
     return hasHat || hasRole;
 }
@@ -849,18 +857,18 @@ contract DeployHatsTree is Script {
         console.log("Top Hat ID:", topHatId);
         
         // ═══════════════════════════════════════════════════════════════════
-        // STEP 2: Create Raffle Creator Hat (stake-gated)
+        // STEP 2: Create Sponsor Hat (stake-gated)
         // ═══════════════════════════════════════════════════════════════════
-        uint256 raffleCreatorHatId = hats.createHat(
+        uint256 sponsorHatId = hats.createHat(
             topHatId,                       // Admin
-            "Raffle Creator",               // Details
+            "Sponsor",               // Details
             MAX_CREATORS,                   // Max supply
             address(0),                     // Eligibility (set after module deploy)
             address(0),                     // Toggle (active by default)
             true,                           // Mutable
             "ipfs://QmRaffleCreatorImage"   // Replace with actual IPFS hash
         );
-        console.log("Raffle Creator Hat ID:", raffleCreatorHatId);
+        console.log("Sponsor Hat ID:", sponsorHatId);
         
         // ═══════════════════════════════════════════════════════════════════
         // STEP 3: Create Judge Hat (can slash)
@@ -903,7 +911,7 @@ contract DeployHatsTree is Script {
         
         address stakingEligibility = factory.createHatsModule(
             STAKING_ELIGIBILITY_IMPL,
-            raffleCreatorHatId,
+            sponsorHatId,
             otherImmutableArgs,
             initData,
             uint256(keccak256(abi.encodePacked(block.timestamp, deployer, "SOF_STAKING")))
@@ -911,10 +919,10 @@ contract DeployHatsTree is Script {
         console.log("StakingEligibility Instance:", stakingEligibility);
         
         // ═══════════════════════════════════════════════════════════════════
-        // STEP 6: Set Eligibility Module on Raffle Creator Hat
+        // STEP 6: Set Eligibility Module on Sponsor Hat
         // ═══════════════════════════════════════════════════════════════════
-        hats.changeHatEligibility(raffleCreatorHatId, stakingEligibility);
-        console.log("Eligibility set on Raffle Creator Hat");
+        hats.changeHatEligibility(sponsorHatId, stakingEligibility);
+        console.log("Eligibility set on Sponsor Hat");
         
         // ═══════════════════════════════════════════════════════════════════
         // STEP 7: Mint Recipient Hat to Treasury
@@ -937,7 +945,7 @@ contract DeployHatsTree is Script {
         // ═══════════════════════════════════════════════════════════════════
         console.log("\n=== DEPLOYMENT SUMMARY ===");
         console.log("Top Hat ID:           ", topHatId);
-        console.log("Raffle Creator Hat ID:", raffleCreatorHatId);
+        console.log("Sponsor Hat ID:", sponsorHatId);
         console.log("Judge Hat ID:         ", judgeHatId);
         console.log("Recipient Hat ID:     ", recipientHatId);
         console.log("StakingEligibility:   ", stakingEligibility);
@@ -947,7 +955,7 @@ contract DeployHatsTree is Script {
         
         console.log("NEXT STEPS:");
         console.log("1. Deploy upgraded Raffle contract with HATS parameter");
-        console.log("2. Call raffle.setRaffleCreatorHat(", raffleCreatorHatId, ")");
+        console.log("2. Call raffle.setRaffleCreatorHat(", sponsorHatId, ")");
         console.log("3. Mint Judge Hats to designated accounts");
         console.log("4. Test staking + raffle creation flow");
     }
@@ -984,7 +992,7 @@ forge script script/DeployRaffleV2.s.sol:DeployRaffleV2 \
 # Configure the Hat ID
 cast send <NEW_RAFFLE_ADDRESS> \
   "setRaffleCreatorHat(uint256)" \
-  <RAFFLE_CREATOR_HAT_ID> \
+  <SPONSOR_HAT_ID> \
   --rpc-url https://sepolia.base.org \
   --private-key $PRIVATE_KEY
 ```
@@ -1011,7 +1019,7 @@ cast send <STAKING_ELIGIBILITY_ADDRESS> \
 cast call $HATS \
   "isWearerOfHat(address,uint256)" \
   $YOUR_ADDRESS \
-  <RAFFLE_CREATOR_HAT_ID> \
+  <SPONSOR_HAT_ID> \
   --rpc-url https://sepolia.base.org
 # Should return: true
 
@@ -1092,14 +1100,14 @@ export function useCanCreateRaffle(address: string) {
     address: HATS_ADDRESS,
     abi: HATS_ABI,
     functionName: 'isWearerOfHat',
-    args: [address, RAFFLE_CREATOR_HAT_ID],
+    args: [address, SPONSOR_HAT_ID],
   });
 
   const { data: inGoodStanding } = useContractRead({
     address: HATS_ADDRESS,
     abi: HATS_ABI,
     functionName: 'isInGoodStanding',
-    args: [address, RAFFLE_CREATOR_HAT_ID],
+    args: [address, SPONSOR_HAT_ID],
   });
 
   return isWearer && inGoodStanding;
@@ -1119,13 +1127,13 @@ If Hats Protocol integration encounters issues on Base Sepolia during testing:
 ```solidity
 // Fallback in Raffle.sol if Hats is disabled
 modifier canCreateSeason() {
-    if (address(HATS) == address(0) || raffleCreatorHatId == 0) {
+    if (address(HATS) == address(0) || sponsorHatId == 0) {
         // Hats not configured — fall back to role-only
         if (!hasRole(SEASON_CREATOR_ROLE, msg.sender)) revert UnauthorizedCaller();
     } else {
         // Hats configured — check hat OR role
-        bool hasHat = HATS.isWearerOfHat(msg.sender, raffleCreatorHatId) &&
-                      HATS.isInGoodStanding(msg.sender, raffleCreatorHatId);
+        bool hasHat = HATS.isWearerOfHat(msg.sender, sponsorHatId) &&
+                      HATS.isInGoodStanding(msg.sender, sponsorHatId);
         bool hasRole = hasRole(SEASON_CREATOR_ROLE, msg.sender);
         if (!hasHat && !hasRole) revert UnauthorizedCaller();
     }
